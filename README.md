@@ -1,11 +1,13 @@
 ## Visual Question Answering on Art
 
 Repository for the [paper](https://arxiv.org/abs/2008.12520) *A Dataset and Baselines for Visual Question Answering on Art*, 
-published at [VISART](https://visarts.eu/) workshop at [ECCV 2020](https://eccv2020.eu/). 
+published at [VISART](https://visarts.eu/) workshop at [ECCV 2020](https://eccv2020.eu/).
 
 Watch the paper introduction [video](https://www.youtube.com/watch?v=I78SoOkH3dM&t=116s).
 
-![examples](https://github.com/noagarcia/ArtVQA/blob/master/images/examples.png?raw=true)
+<p align="center">
+  <img width="460" src="https://github.com/noagarcia/ArtVQA/blob/master/images/examples.png">
+</p>
 
 Answering questions related to paintings implies the understanding of not only the visual information that is shown in the picture, 
 but also the contextual knowledge that is acquired through the study of the history of art. We introduce a dataset and baselines to explore this challenging task. Specifically, in this repository you can find:
@@ -47,10 +49,7 @@ There are 69,812 samples in the training set, 5,124 samples in the validation se
 
 ##### Overview
 
-Our VIKING baseline consists on a three module model:
-- Modality selector
-- Visual QA branch
-- Knowledge QA branch
+Our VIKING baseline consists on a three module model.
 
 ![model](https://github.com/noagarcia/ArtVQA/blob/master/images/model.png?raw=true)
 
