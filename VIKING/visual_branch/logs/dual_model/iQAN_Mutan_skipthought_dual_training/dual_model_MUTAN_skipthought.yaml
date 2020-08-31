@@ -1,0 +1,88 @@
+coco:
+  arch: resnet152
+  dir: data/coco
+  mode: att
+  size: 448
+logs:
+  dir_logs: logs/dual_model/iQAN_Mutan_skipthought_dual_training/
+model:
+  arch: Dual_Model
+  arch_resnet: resnet152
+  attention:
+    R: 5
+    activation_q: tanh
+    activation_v: tanh
+    arch: Mutan
+    dim_hq: 310
+    dim_hv: 310
+    dim_mm: 510
+    dim_q: 310
+    dim_v: 310
+    dropout_hq: 0
+    dropout_hv: 0
+    dropout_mm: 0.5
+    dropout_q: 0.5
+    dropout_v: 0.5
+    nb_glimpses: 2
+  dim_a: 510
+  dim_q: 2400
+  dim_v: 2048
+  seq2vec:
+    arch: skipthoughts
+    dir_st: data/skip-thoughts
+    dropout: 0.25
+    fixed_emb: false
+    type: BayesianUniSkip
+  share_modules: false
+  vqa:
+    classif:
+      activation: tanh
+      dropout: 0.5
+    fusion:
+      R: 5
+      activation_q: tanh
+      activation_v: tanh
+      dim_hq: 510
+      dim_hv: 620
+      dim_mm: 510
+      dropout_hq: 0
+      dropout_hv: 0
+      dropout_q: 0.5
+      dropout_v: 0.5
+  vqg:
+    activation: tanh
+    dropout: 0.5
+    vec2seq:
+      activation: relu
+      arch: Baseline
+      dim_embedding: 620
+      dim_h: 2400
+      dropout: 0.5
+      nb_layers: 1
+      nseq: 20
+      share_weight: 0
+optim:
+  batch_size: 8
+  epochs: 50
+  eval_epochs: 10
+  lr: 0.0001
+  lr_decay: 0.5
+  lr_decay_epoch: 30
+  optimizer: Adam
+  weight_decay: 1.0e-05
+vqa:
+  add_start: true
+  all_ans: false
+  concept_mincount: 30
+  dataset: VQA2
+  dir: data/vqa2
+  maxlength: 17
+  minwcount: 10
+  nans: 2000
+  nlp: nltk
+  pad: right
+  partial: -1.0
+  sample_concept: false
+  samplingans: false
+  select_questions: true
+  trainsplit: train
