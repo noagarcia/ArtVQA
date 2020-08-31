@@ -51,4 +51,4 @@ python classifier.py
 ```
 
 It will train the classifier on training set, validation its performance on validation set and predict result on test set. 
-The prediction result of test set is stored in `Results/need_external_knowledge.json` and `Results/not_need_external_knowledge.json`.
+The prediction result of test set is stored in `Results/test_need_kg.json` and `Results/test_not_need_kg.json`.

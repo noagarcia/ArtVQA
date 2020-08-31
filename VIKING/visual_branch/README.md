@@ -18,10 +18,10 @@ cp ../../AQUA/val.json ./data/SemArt/extract/arch,resnet152_size,448/
 ```
 
 - The test set is those questions which `modality selector` predicts that no external knowledge is needed, the file
-`not_need_external_knowledge.json` contains the test set for this module.
+`test_not_need_kg.json` contains the test set for this module.
 
 ```bash
-cp ../modality_selector/Results/test_not_need_external_knowledge.json ./data/SemArt/extract/arch,resnet152_size,448/
+cp ../modality_selector/Results/test_not_need_kg.json ./data/SemArt/extract/arch,resnet152_size,448/
 ```
 
 ### Prepare Features for Painings
