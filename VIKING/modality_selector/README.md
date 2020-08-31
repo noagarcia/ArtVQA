@@ -1,6 +1,7 @@
 ## Modality selector
 The `Modality selector` predicts whether external knowledge is needed to answer a question given its corresponding painting. 
 
+Code by [Zihua Liu](https://github.com/Zihua-Liu). Maintenance by [Noa Garcia](https://github.com/noagarcia).
 
 ### Feature Extraction
 
@@ -9,9 +10,10 @@ The `Modality selector` predicts whether external knowledge is needed to answer 
 ```bash
 wget https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zip
 unzip uncased_L-24_H-1024_A-16.zip
+rm uncased_L-24_H-1024_A-16.zip
 ```
 
-Install the following packages (https://github.com/hanxiao/bert-as-service):
+Install [BERT-as-Service](https://github.com/hanxiao/bert-as-service):
 
 ```bash
 pip install bert-serving-server
