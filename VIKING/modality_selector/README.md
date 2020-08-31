@@ -3,6 +3,16 @@ The `Modality selector` predicts whether external knowledge is needed to answer 
 
 Code by [Zihua Liu](https://github.com/Zihua-Liu). Maintenance by [Noa Garcia](https://github.com/noagarcia).
 
+
+### Dependencies
+
+```bash
+pip install bert-serving-server
+pip install bert-serving-client
+conda install scikit-learn
+```
+
+
 ### Feature Extraction
 
 - **Question features**. We use pretrained BERT. First download pretrained model:
@@ -11,13 +21,6 @@ Code by [Zihua Liu](https://github.com/Zihua-Liu). Maintenance by [Noa Garcia](h
 wget https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zip
 unzip uncased_L-24_H-1024_A-16.zip
 rm uncased_L-24_H-1024_A-16.zip
-```
-
-Install [BERT-as-Service](https://github.com/hanxiao/bert-as-service):
-
-```bash
-pip install bert-serving-server
-pip install bert-serving-client
 ```
 
 Then, run BERT service in the background:
@@ -39,7 +42,7 @@ python features.py
 ```
 
 
-### Run Classifier
+### Modality Selector
 
 After feature extraction is done, we can then train the classifier and test its performance. First, make sure `train/val/test.npy` files are in `Cache` folder. Then, run:
 
@@ -47,4 +50,5 @@ After feature extraction is done, we can then train the classifier and test its 
 python classifier.py
 ```
 
-It will train the classifier on training set, validation its performance on validation set and predict result on test set. The prediction result of test set is stored in `need_external_knowledge.json` and `not_need_external_knowledge.json`.
+It will train the classifier on training set, validation its performance on validation set and predict result on test set. 
+The prediction result of test set is stored in `Results/need_external_knowledge.json` and `Results/not_need_external_knowledge.json`.
