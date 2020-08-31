@@ -1,8 +1,8 @@
 ## Modality selector
 The `Modality selector` predicts whether external knowledge is needed to answer a question given its corresponding painting. 
-Please refer to README in External Knowledge Classifier folder on how to run the code.
 
-#### Feature Extraction
+
+### Feature Extraction
 
 - **Question features**. We use pretrained BERT. First download pretrained model:
 
@@ -37,7 +37,7 @@ python features.py
 ```
 
 
-#### Run Classifier
+### Run Classifier
 
 After feature extraction is done, we can then train the classifier and test its performance. First, make sure `train/val/test.npy` files are in `Cache` folder. Then, run:
 
