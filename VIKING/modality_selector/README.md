@@ -30,19 +30,19 @@ bert-serving-start -model_dir ./uncased_L-24_H-1024_A-16/ -num_worker=1
 wget https://semart.s3.amazonaws.com/image_features.json
 ```
 
-- **Features processing**. Run feature extraction code to extract features and the extracted features will be saved to `modality_selector/Cache` folder:
+- **Features processing**. Run feature extraction code to extract features and the extracted features will be saved to `Cache` folder:
 
 ```bash
-python modality_selector/features.py
+python features.py
 ```
 
 
 #### Run Classifier
 
-After feature extraction is done, we can then train the classifier and test its performance. First, make sure `train/val/test.npy` files are in `modality_selector/Cache` folder. Then, run:
+After feature extraction is done, we can then train the classifier and test its performance. First, make sure `train/val/test.npy` files are in `Cache` folder. Then, run:
 
 ```
-python modality_selector/classifier.py
+python classifier.py
 ```
 
 It will train the classifier on training set, validation its performance on validation set and predict result on test set. The prediction result of test set is stored in `need_external_knowledge.json` and `not_need_external_knowledge.json`.

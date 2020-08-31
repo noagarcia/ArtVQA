@@ -2,15 +2,9 @@ import numpy as np
 from bert_serving.client import BertClient
 import json
 import os
-import argparse
 
 bc = BertClient()
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_type', type=str, default='processed', help='raw or processed')
-    args, unknown = parser.parse_known_args()
-    return args
 
 def load_dataset(path, size):
 	with open(path) as f:
@@ -35,31 +29,33 @@ def load_dataset(path, size):
 
 if __name__ == "__main__":
 
-	args = parse_args()
-	assert args.data_type in ['raw', 'processed']
+	cache_dir = "Cache/"
+	aqua_dir = "../../AQUA/"
+	if not os.path.exists(cache_dir):
+		os.makedirs(cache_dir)
 
-	if os.path.exists("Cache Data/%s/train.npy" % args.data_type):
-		train_features = np.load("Cache Data/%s/train.npy" % args.data_type)
+	if os.path.exists(os.path.join(cache_dir, "train.npy")):
+		train_features = np.load(os.path.join(cache_dir, "train.npy"))
 		print(train_features.shape)
 	else:
-		train_features = load_dataset("../Dataset/%s/train.json" % args.data_type, None)
-		np.save("Cache Data/%s/train.npy" % args.data_type, train_features)
+		train_features = load_dataset(os.path.join(aqua_dir, "train.json"), None)
+		np.save(os.path.join(cache_dir, "train.npy"), train_features)
 	print("Training Set Finished")
 
-	if os.path.exists("Cache Data/%s/val.npy" % args.data_type):
-		val_features = np.load("Cache Data/%s/val.npy" % args.data_type)
+	if os.path.exists(os.path.join(cache_dir, "val.npy")):
+		val_features = np.load(os.path.join(cache_dir, "val.npy"))
 		print(val_features.shape)
 	else:
-		val_features = load_dataset("../Dataset/%s/val.json" % args.data_type, None)
-		np.save("Cache Data/%s/val.npy" % args.data_type, val_features)
+		val_features = load_dataset(os.path.join(aqua_dir, "val.json"), None)
+		np.save(os.path.join(cache_dir, "val.npy"), val_features)
 	print("Validation Set Finished")
 
-	if os.path.exists("Cache Data/%s/test.npy" % args.data_type):
-		test_features = np.load("Cache Data/%s/test.npy" % args.data_type)
+	if os.path.exists(os.path.join(cache_dir, "test.npy")):
+		test_features = np.load(os.path.join(cache_dir, "test.npy"))
 		print(test_features.shape)
 	else:
-		test_features = load_dataset("../Dataset/%s/test.json" % args.data_type, None)
-		np.save("Cache Data/%s/test.npy" % args.data_type, test_features)
+		test_features = load_dataset(os.path.join(aqua_dir, "test.json"), None)
+		np.save(os.path.join(cache_dir, "test.npy"), test_features)
 	print("Test Set Finished")
 
 
