@@ -1,0 +1,9 @@
+VIKING/modality_selector/uncased_L-24_H-1024_A-16
+VIKING/modality_selector/Cache
+VIKING/modality_selector/image_features.json
+VIKING/modality_selector/Results
+data/SemArt/extract/arch,resnet152_size,448
+
+*.pkl
+*.pyc
+.idea/

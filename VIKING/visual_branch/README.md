@@ -5,6 +5,8 @@ The `visual QA branch` predicts an answer for a sample classified as not externa
 It takes the question which external knowledge classifier predicts that no external knowledge is needed as well as the 
 painting as input, and predicts an answer to the given question.
 
+See list of requierements [here](https://github.com/Zihua-Liu/QA_Pipeline_SemArt/blob/master/iQAN/requirements.txt).
+
 
 ### Prepare Data
 
