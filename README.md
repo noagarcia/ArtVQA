@@ -20,7 +20,7 @@ In VIKING the visual and knowledge questions are handled independently.
 
 ### Citation
 
-If you find our work useful, please us:
+If you find our work useful, please cite us:
 ````
 @InProceedings{garcia2020AQUA,
    author    = {Noa Garcia and Chentao Ye and Zihua Liu and Qingtao Hu and 
