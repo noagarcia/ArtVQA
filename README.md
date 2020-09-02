@@ -14,7 +14,7 @@ but also the contextual knowledge that is acquired through the study of the hist
 - [AQUA Dataset](https://github.com/noagarcia/ArtVQA/blob/master/AQUA/). The question-answer (QA)
 pairs are automatically generated using state-of-the-art question generation methods based on paintings and comments provided in an existing
 art understanding dataset.
-- [VIKING Baselines](https://github.com/noagarcia/ArtVQA/blob/master/VIKING/). We present a two-branch model as baseline for the task of visual question answering on art. 
+- [VIKING Baseline](https://github.com/noagarcia/ArtVQA/blob/master/VIKING/). We present a two-branch model as baseline for the task of visual question answering on art. 
 In VIKING the visual and knowledge questions are handled independently. 
 
 
