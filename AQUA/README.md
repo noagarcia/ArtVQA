@@ -9,7 +9,7 @@ Images for the AQUA dataset are obtained by downloading SemArt, whereas the ques
 
 
 ### Download
-- Painting images from SemArt dataset: [downlowad](https://researchdata.aston.ac.uk/380/1/SemArt.zip)
+- Painting images from SemArt dataset: [download](https://researchdata.aston.ac.uk/380/1/SemArt.zip)
 - AQUA QA pairs in json format: [download](https://github.com/noagarcia/ArtVQA/blob/master/AQUA/)
 
 ### Annotations format
