@@ -1,0 +1,16 @@
+python ./XLNet/run_squad.py \
+    --model_type xlnet \
+    --model_name_or_path xlnet-large-cased \
+    --do_train \
+    --do_eval \
+    --do_lower_case \
+    --train_file ./Data/XLNet/xlnet_train.json \
+    --predict_file ./Data/XLNet/xlnet_val.json \
+    --learning_rate 3e-5 \
+    --num_train_epochs 3 \
+    --max_seq_length 384 \
+    --doc_stride 128 \
+    --output_dir ./Models/XLNet \
+    --per_gpu_eval_batch_size=1  \
+    --per_gpu_train_batch_size=1   \
+    --save_steps 5000

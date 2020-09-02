@@ -3,6 +3,9 @@ VIKING/modality_selector/Cache
 VIKING/modality_selector/image_features.json
 VIKING/modality_selector/Results
 VIKING/visual_branch/data/SemArt/extract/arch,resnet152_size,448
+VIKING/knowledge_branch/Cache
+VIKING/knowledge_branch/Models
+VIKING/knowledge_branch/Data/*.json
 
 *.pkl
 *.pyc
