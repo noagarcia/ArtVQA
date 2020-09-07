@@ -31,8 +31,8 @@ cp ../modality_selector/Results/test_not_need_kg.json ./data/SemArt/extract/arch
 We use pretrained ResNet features to represent paintings. The features and the index of the paintings can be downloaded from here:
 
 ```
-wget https://semart.s3.amazonaws.com/all.hdf5 -P ./data/SemArt/extract/arch,resnet152_size,448/
-wget https://semart.s3.amazonaws.com/all.txt -P ./data/SemArt/extract/arch,resnet152_size,448/
+wget https://semart-images.s3-ap-northeast-1.amazonaws.com/VIKING/all.hdf5 -P ./data/SemArt/extract/arch,resnet152_size,448/
+wget https://semart-images.s3-ap-northeast-1.amazonaws.com/VIKING/all.txt -P ./data/SemArt/extract/arch,resnet152_size,448/
 ```
 
 The `hdf5` file is about 30GB and may take some time to download.
