@@ -29,12 +29,16 @@ class AbstractVQADataset(data.Dataset):
         if not os.path.exists(self.subdir_processed):
             self._processed()
 
-        path_wid_to_word = os.path.join(self.subdir_processed, "wid_to_word.pickle")
-        path_word_to_wid = os.path.join(self.subdir_processed, "word_to_wid.pickle")
+        path_wid_to_word = os.path.join(
+            self.subdir_processed, "wid_to_word.pickle"
+        )
+        path_word_to_wid = os.path.join(
+            self.subdir_processed, "word_to_wid.pickle"
+        )
         # path_aid_to_ans = os.path.join(self.subdir_processed, "aid_to_ans.pickle")
         # path_ans_to_aid = os.path.join(self.subdir_processed, "ans_to_aid.pickle")
-        path_aid_to_ans = "../Cache/aqua_cleanall_label2ans.pkl"
-        path_ans_to_aid = "../Cache/aqua_cleanall_ans2label.pkl"
+        path_aid_to_ans = "data/artvqa/aqua_cleanall_label2ans.pkl"
+        path_ans_to_aid = "data/artvqa/aqua_cleanall_ans2label.pkl"
         path_dataset = os.path.join(
             self.subdir_processed, self.data_split + "set.pickle"
         )
@@ -89,7 +93,10 @@ class AbstractVQADataset(data.Dataset):
             + "_trainsplit,"
             + self.opt["trainsplit"]
         )
-        if "select_questions" in self.opt.keys() and self.opt["select_questions"]:
+        if (
+            "select_questions" in self.opt.keys()
+            and self.opt["select_questions"]
+        ):
             subdir += "_filter_questions"
         subdir = os.path.join(self.dir_processed, subdir)
         return subdir

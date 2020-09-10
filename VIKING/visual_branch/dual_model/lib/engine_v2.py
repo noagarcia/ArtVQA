@@ -1,4 +1,4 @@
-from typing import List, Dict, Sequence, Union
+from typing import List, Dict, Optional, Sequence, Union
 import time
 import torch
 import pdb
@@ -10,6 +10,7 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from models.utils import translate_tokens, calculate_bleu_score
 from vqa.lib import logger
 from models.vec2seq import process_lengths_sort
+import neptune
 
 READABLE_RESULT = Dict[str, Union[str, Sequence]]
 RESULT = Dict[str, Union[str, READABLE_RESULT]]
@@ -95,11 +96,12 @@ def train(
         meters["batch_time"].update(time.time() - end, n=batch_size)
         end = time.time()
 
-        neptune_exp.log_metric("Acc@1/train", epoch*len(loader)+i, acc1)
-        neptune_exp.log_metric("Acc@5/train", epoch*len(loader)+i, acc5)
-        neptune_exp.log_metric("Acc@10/train", epoch*len(loader)+i, acc10)
-        neptune_exp.log_metric("Loss_A/train", epoch*len(loader)+i, loss_a)
-        neptune_exp.log_metric("Loss_Q/train", epoch*len(loader)+i, loss_q)
+        if neptune_exp is not None:
+            neptune_exp.log_metric("Acc@1/train", epoch * len(loader) + i, acc1)
+            neptune_exp.log_metric("Acc@5/train", epoch * len(loader) + i, acc5)
+            neptune_exp.log_metric("Acc@10/train", epoch * len(loader) + i, acc10)
+            neptune_exp.log_metric("Loss_A/train", epoch * len(loader) + i, loss_a)
+            neptune_exp.log_metric("Loss_Q/train", epoch * len(loader) + i, loss_q)
 
         if (i + 1) % print_freq == 0:
             print(
@@ -236,20 +238,21 @@ def evaluate(
     loader: torch.utils.data.DataLoader,
     model: torch.nn.Module,
     logger: logger.Experiment,
-    print_freq: int = 10,
     sampling_num: int = 5,
+    neptune_exp: Optional[neptune.experiments.Experiment] = None,
 ) -> List[RESULT]:
     aid_to_ans = loader.dataset.aid_to_ans + ["UNK"]
     model.eval()
     model.module.set_testing(True, sample_num=sampling_num)
     meters = logger.reset_meters("test")
+    res_counter = {"correct@1": 0, "correct@5": 0, "correct@10": 0, "n_sample": 0}
     results = []
     end = time.time()
 
     for sample in loader:
         batch_size = sample["visual"].size(0)
-        input_visual = Variable(sample["visual"].cuda(), volatile=True)
-        input_answer = Variable(sample["answer"].cuda(), volatile=True)
+        input_visual = Variable(sample["visual"].cuda())
+        input_answer = Variable(sample["answer"].cuda())
         target_answer = sample["answer"]
         input_question = sample["question"].long().cuda()
         output_answer, g_answers, g_answers_score, generated_q = model(
@@ -262,6 +265,11 @@ def evaluate(
         acc1, acc5, acc10 = utils.accuracy(
             output_answer.cpu().data, target_answer, topk=(1, 5, 10)
         )
+
+        correct1, correct5, correct10 = utils.correct_k(
+            output_answer.cpu().data, target_answer, topk=(1, 5, 10)
+        )
+
         # accumulate number of correct predictions
         meters["acc1"].update(acc1.item(), n=batch_size)
         meters["acc5"].update(acc5.item(), n=batch_size)
@@ -269,6 +277,11 @@ def evaluate(
         meters["bleu_score"].update(bleu_score, n=batch_size)
         g_answers = g_answers.cpu().data
         g_answers_score = g_answers_score.cpu().data
+
+        res_counter["correct@1"] += correct1.item()
+        res_counter["correct@5"] += correct5.item()
+        res_counter["correct@10"] += correct10.item()
+        res_counter["n_sample"] += batch_size
 
         for j in range(batch_size):
             new_question = generated_q.cpu().data[j].tolist()
@@ -315,6 +328,14 @@ def evaluate(
             bleu_score=meters["bleu_score"],
         )
     )
+    print(f"{res_counter['correct@1']} / {res_counter['n_sample']}")
+
+    if neptune_exp is not None:
+        neptune_exp.log_metric("Acc@1", meters["acc1"].avg)
+        neptune_exp.log_metric("Acc@5", meters["acc5"].avg)
+        neptune_exp.log_metric("Acc@10", meters["acc10"].avg)
+        neptune_exp.log_metric("N_Correct@1", res_counter["correct@1"])
+        neptune_exp.log_metric("N_Samples", res_counter["n_sample"])
 
     model.module.set_testing(False)
     return results

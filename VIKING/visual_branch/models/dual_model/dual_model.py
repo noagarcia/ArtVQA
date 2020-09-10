@@ -24,7 +24,7 @@ class Dual_Model(nn.Module):
 
         self.vocab_answers = vocab_answers
         self.vocab_words = vocab_words
-        self.num_classes = len(self.vocab_answers) + 1 # for [UNK]
+        self.num_classes = len(self.vocab_answers) + 1  # for [UNK]
 
         # VQA Modules
         self.seq2vec = seq2vec.factory(self.vocab_words, self.opt["seq2vec"])
@@ -193,7 +193,7 @@ class Dual_Model(nn.Module):
 
         ##### VQA forward #######
         answers = self._vqa_forward(input_v, input_q)[0]
-        g_answers_score, g_answers = torch.max(F.softmax(answers), dim=1)
+        g_answers_score, g_answers = torch.max(F.softmax(answers, dim=1), dim=1)
         if input_a is not None:
             generated_q = self._vqg_forward(input_v, input_a)[0]
             g_answers = input_a

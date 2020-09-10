@@ -1,73 +1,45 @@
+from dataclasses import dataclass
 import os
-import numpy as np
+from typing import Tuple
 import h5py
 import torch
 import torch.utils.data as data
 
+
+@dataclass
 class FeaturesDataset(data.Dataset):
+    feat_file: str
+    metadata: str
+    mode: str
+    dir_extract: str = "data/SemArt/extract/arch,resnet152_size,448/"
+    data_split: str = "all"
 
-    def __init__(self, data_split, opt):
-        self.data_split = data_split
-        self.opt = opt
-        self.dir_extract = os.path.join(self.opt['dir'],
-                                      'extract',
-                                      'arch,' + self.opt['arch'])
-        if 'size' in opt:
-            self.dir_extract += '_size,' + str(opt['size'])
-        if opt.get('conv', False):
-            self.dir_extract += '_conv'
+    def __post_init__(self) -> None:
+        hdf5_file = h5py.File(self.feat_file, "r")
+        self.dataset_features = hdf5_file[self.mode]
+        self.index_to_name, self.name_to_index = self.image_index_mapping()
 
-        self.path_hdf5 = "data/SemArt/extract/arch,resnet152_size,448/all.hdf5"
-        self.dir_extract = "data/SemArt/extract/arch,resnet152_size,448/"
-        self.data_split = "all"
+    def image_index_mapping(self) -> Tuple[list, dict]:
+        with open(self.metadata, "r") as f:
+            index_to_name = [line.rstrip() for line in f]
+        name_to_index = {
+            name: index for index, name in enumerate(index_to_name)
+        }
+        return index_to_name, name_to_index
 
-        self.hdf5_file = h5py.File(self.path_hdf5, 'r')#, driver='mpio', comm=MPI.COMM_WORLD)
-        self.dataset_features = self.hdf5_file[self.opt['mode']]
-        self.index_to_name, self.name_to_index = self._load_dicts()
+    def __getitem__(self, index: int) -> dict:
+        return {
+            "name": self.index_to_name[index],
+            "visual": self.get_features(index),
+        }
 
-    def _load_dicts(self):
-        self.path_fname = os.path.join(self.dir_extract,
-                                       self.data_split + '.txt')
-        with open(self.path_fname, 'r') as handle:
-            self.index_to_name = handle.readlines()
-        self.index_to_name = [name[:-1] for name in self.index_to_name] # remove char '\n'
-        self.name_to_index = {name:index for index,name in enumerate(self.index_to_name)}
-        return self.index_to_name, self.name_to_index
-
-    def __getitem__(self, index):
-        item = {}
-        item['name'] = self.index_to_name[index]
-        item['visual'] = self.get_features(index)
-        #item = torch.Tensor(self.get_features(index))
-        return item
-
-    def get_features(self, index):
+    def get_features(self, index: int) -> torch.Tensor:
         return torch.Tensor(self.dataset_features[index])
 
-    def get_features_old(self, index):
-        try:
-            self.features_array
-        except AttributeError:
-            if self.opt['mode'] == 'att':
-                self.features_array = np.zeros((2048,14,14), dtype='f')
-            elif self.opt['mode'] == 'noatt':
-                self.features_array = np.zeros((2048), dtype='f')
-
-        if self.opt['mode'] == 'att':
-            self.dataset_features.read_direct(self.features_array,
-                                              np.s_[index,:2048,:14,:14],
-                                              np.s_[:2048,:14,:14])
-        elif self.opt['mode'] == 'noatt':
-            self.dataset_features.read_direct(self.features_array,
-                                              np.s_[index,:2048],
-                                              np.s_[:2048])
-        return self.features_array
-        
-
-    def get_by_name(self, image_name):
+    def get_by_name(self, image_name: str) -> dict:
         index = self.name_to_index[image_name]
         return self[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.dataset_features.shape[0]
 

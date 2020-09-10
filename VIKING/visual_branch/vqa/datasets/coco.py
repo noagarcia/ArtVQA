@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, Any, Optional
 from PIL.Image import Image
 import os
@@ -10,54 +11,44 @@ import torchvision.transforms as transforms
 from .images import ImagesFolder, AbstractImagesDataset, default_loader
 from .features import FeaturesDataset
 
-
-def split_name(data_split):
-    if data_split in ["train", "val"]:
-        return data_split + "2014"
-    elif data_split == "test":
-        return data_split + "2015"
-    else:
-        assert False, "data_split {} not exists".format(data_split)
+COCO_TRAIN_URL = "http://msvocds.blob.core.windows.net/coco2014/train2014.zip"
+COCO_VAL_URL = "http://msvocds.blob.core.windows.net/coco2014/val2014.zip"
+COCO_TEST_URL = "http://msvocds.blob.core.windows.net/coco2015/test2015.zip"
 
 
+@dataclass
 class COCOImages(AbstractImagesDataset):
-    def __init__(
-        self,
-        data_split: str,
-        opt: dict,
-        transform: Optional[Callable[[Image], Image]],
-        loader: Callable[[Any], Image] = default_loader,
-    ) -> None:
-        super(COCOImages, self).__init__(data_split, opt, transform, loader)
-        self.split_name = split_name(self.data_split)
-        self.dir_split = os.path.join(self.dir_raw, self.split_name)
+    # def __init__(
+    #     self,
+    #     data_split: str,
+    #     opt: dict,
+    #     transform: Optional[Callable[[Image], Image]],
+    #     loader: Callable[[Any], Image] = default_loader,
+    # ) -> None:
+    #     super(COCOImages, self).__init__(data_split, opt, transform, loader)
+    #     self.split_name = split_name(self.data_split)
+    #     self.dir_split = os.path.join(self.dir_raw, self.split_name)
+
+    def __post_init__(self):
         self.dataset = ImagesFolder(
             self.dir_split, transform=self.transform, loader=self.loader
         )
         self.name_to_index = self._load_name_to_index()
 
-    def _raw(self):
-        if self.data_split in ["train", "val"]:
-            pass
-            os.system(
-                "wget http://msvocds.blob.core.windows.net/coco2014/{}.zip -P {}".format(
-                    split_name(self.data_split), self.dir_raw
-                )
-            )
+    def _download_dataset(self, rawdata_dir) -> None:
+        if self.data_split == "train":
+            download_url = COCO_TRAIN_URL
+        elif self.data_split == "val":
+            download_url = COCO_VAL_URL
         elif self.data_split == "test":
-            pass
-            os.system(
-                "wget http://msvocds.blob.core.windows.net/coco2015/test2015.zip -P "
-                + self.dir_raw
-            )
+            download_url = COCO_TEST_URL
         else:
-            assert False, "data_split {} not exists".format(self.data_split)
-        os.system(
-            "unzip "
-            + os.path.join(self.dir_raw, self.split_name + ".zip")
-            + " -d "
-            + self.dir_raw
-        )
+            assert False, f"data_split {self.data_split} not exists"
+
+        os.system(f"wget {download_url} -P {rawdata_dir}")
+
+        zip_file = os.path.join(rawdata_dir, self.split_name + ".zip")
+        os.system(f"unzip {zip_file} -d {rawdata_dir}")
 
     def _load_name_to_index(self):
         self.name_to_index = {
@@ -127,9 +118,9 @@ def factory(
         if opt["mode"] == "img":
             if transform is None:
                 transform = default_transform(opt["size"])
-            return COCOImages(data_split, opt, transform)
+            return COCOImages(data_split, opt["dir"] + "raw", transform)
         elif opt["mode"] in ["noatt", "att"]:
-            return FeaturesDataset(data_split, opt)
+            return FeaturesDataset(opt["mode"])
         else:
             raise ValueError
     else:
