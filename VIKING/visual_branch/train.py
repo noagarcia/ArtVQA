@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 from typing import Optional
+from click.decorators import option
 import yaml
 import json
 import click
@@ -11,12 +12,11 @@ import torch
 import torch.nn as nn
 from argparse import Namespace
 
-import vqa.lib.utils as utils
 import vqa.lib.logger as logger
 import vqa.datasets as datasets
 
 # task specific package
-import models.dual_model as models  # DL_Conv, DL_FC, DL_ResNet, Dual_Model, Dual_Model_Baseline, Dual_Model_MLB
+import models.dual_model as models
 import dual_model.lib.engine_v2 as engine
 
 import pdb
@@ -39,123 +39,89 @@ def add_time_stamp(log_dir: str) -> str:
     return os.path.join(log_dir, time_stamp)
 
 
-parser = argparse.ArgumentParser(
-    description="Train/Evaluate models",
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-)
-##################################################
-#  yaml options file contains all default choices #
-parser.add_argument(
-    "--path_opt",
-    default="options/dual_model/default.yaml",
-    type=str,
-    help="path to a yaml options file",
-)
-################################################
-# change cli options to modify default choices #
-# logs options
-parser.add_argument("--dir_logs", type=add_time_stamp, help="dir logs")
-# data options
-parser.add_argument("--vqa_trainsplit", type=str, choices=["train", "trainval"])
-# model options
-parser.add_argument(
-    "--arch",
-    choices=model_names,
-    help="vqa model architecture: " + " | ".join(model_names),
-)
-parser.add_argument(
-    "-lr", "--learning_rate", type=float, help="initial learning rate"
-)
-parser.add_argument(
-    "-wdecay", "--weight_decay", type=float, help="weight decay"
-)
-parser.add_argument("-b", "--batch_size", type=int, help="mini-batch size")
-parser.add_argument("--epochs", type=int, help="number of total epochs to run")
-parser.add_argument(
-    "--eval_epochs",
-    type=int,
-    default=10,
-    help="Number of epochs to evaluate the model",
-)
-# options not in yaml file
-parser.add_argument(
-    "--start_epoch",
-    default=0,
-    type=int,
-    help="manual epoch number (useful on restarts)",
-)
-parser.add_argument(
-    "--resume", default="", type=str, help="path to latest checkpoint"
-)
-parser.add_argument(
-    "--save_model",
-    default=True,
-    type=utils.str2bool,
-    help="able or disable save model and optim state",
-)
-parser.add_argument(
-    "--save_all_from",
-    type=int,
-    help="""delete the preceding checkpoint until an epoch,"""
-    """ then keep all (useful to save disk space)')""",
-)
-parser.add_argument(
-    "-e",
-    "--evaluate",
-    dest="evaluate",
-    action="store_true",
-    help="evaluate model on validation and test set",
-)
-parser.add_argument(
-    "--print_freq", "-p", default=1000, type=int, help="print frequency"
-)
-################################################
-parser.add_argument(
-    "-ho",
-    "--help_opt",
-    dest="help_opt",
-    action="store_true",
-    help="show selected options before running",
-)
-parser.add_argument(
-    "--beam_search",
-    action="store_true",
-    help="whether to use beam search, the batch_size will be set to 1 automatically",
-)
+# parser = argparse.ArgumentParser(
+#     description="Train/Evaluate models",
+#     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+# )
+# ##################################################
+# #  yaml options file contains all default choices #
+# parser.add_argument(
+#     "--path_opt",
+#     default="options/dual_model/default.yaml",
+#     type=str,
+#     help="path to a yaml options file",
+# )
+# ################################################
+# # change cli options to modify default choices #
+# # logs options
+# parser.add_argument("--dir_logs", type=add_time_stamp, help="dir logs")
+# # data options
+# parser.add_argument("--vqa_trainsplit", type=str, choices=["train", "trainval"])
+# # model options
+# parser.add_argument(
+#     "--arch",
+#     choices=model_names,
+#     help="vqa model architecture: " + " | ".join(model_names),
+# )
+# parser.add_argument(
+#     "-lr", "--learning_rate", type=float, help="initial learning rate"
+# )
+# parser.add_argument(
+#     "-wdecay", "--weight_decay", type=float, help="weight decay"
+# )
+# parser.add_argument("-b", "--batch_size", type=int, help="mini-batch size")
+# parser.add_argument("--epochs", type=int, help="number of total epochs to run")
+# parser.add_argument(
+#     "--eval_epochs",
+#     type=int,
+#     default=10,
+#     help="Number of epochs to evaluate the model",
+# )
+# # options not in yaml file
+# parser.add_argument(
+#     "--start_epoch",
+#     default=0,
+#     type=int,
+#     help="manual epoch number (useful on restarts)",
+# )
+# parser.add_argument(
+#     "--resume", default="", type=str, help="path to latest checkpoint"
+# )
+# parser.add_argument(
+#     "--save_model",
+#     action="store_true",
+#     help="able or disable save model and optim state",
+# )
+# parser.add_argument(
+#     "--save_all_from",
+#     type=int,
+#     help="""delete the preceding checkpoint until an epoch,"""
+#     """ then keep all (useful to save disk space)')""",
+# )
+# parser.add_argument(
+#     "-e",
+#     "--evaluate",
+#     dest="evaluate",
+#     action="store_true",
+#     help="evaluate model on validation and test set",
+# )
+# parser.add_argument(
+#     "--print_freq", "-p", default=10, type=int, help="print frequency"
+# )
+# ################################################
 
-parser.add_argument(
-    "--dual_training",
-    action="store_true",
-    help="Whether to use additional loss",
-)
+# parser.add_argument(
+#     "--partial",
+#     type=float,
+#     default=-1.0,
+#     help="Only use part of the VQA dataset. Valid range is (0, 1). [default: -1.]",
+# )
 
-parser.add_argument(
-    "--share_embeddings",
-    action="store_true",
-    help="Whether to share the embeddings",
-)
-
-# parser.add_argument('--finetuning_conv_epoch', type=int, default=10, help='From which epoch to finetuning the conv layers')
-
-parser.add_argument(
-    "--alternative_train",
-    type=float,
-    default=-1.0,
-    help="The sample rate for QG training. if [alternative_train] > 1 or < 0, then jointly train.",
-)
-
-parser.add_argument(
-    "--partial",
-    type=float,
-    default=-1.0,
-    help="Only use part of the VQA dataset. Valid range is (0, 1). [default: -1.]",
-)
-
-parser.add_argument(
-    "--neptune_on",
-    action="store_true",
-    help="Whether to upload results to neptune",
-)
+# parser.add_argument(
+#     "--neptune_on",
+#     action="store_true",
+#     help="Whether to upload results to neptune",
+# )
 
 
 def construct_neptune_experiment(
@@ -210,13 +176,10 @@ def make_log_dir(log_dir: str) -> None:
     os.system(f"mkdir -p {log_dir}")
 
 
-def log_options(log_dir: str, args: Namespace, options: dict) -> None:
-    path_new_opt = os.path.join(log_dir, os.path.basename(args.path_opt))
-    path_args = os.path.join(log_dir, "args.yaml")
+def log_options(log_dir: str, options: dict) -> None:
+    path_new_opt = os.path.join(log_dir, "params.yml")
     with open(path_new_opt, "w") as f:
         yaml.dump(options, f, default_flow_style=False)
-    with open(path_args, "w") as f:
-        yaml.dump(vars(args), f, default_flow_style=False)
 
 
 def construct_logger(options: dict) -> logger.Experiment:
@@ -236,8 +199,6 @@ def training_loop(
     exp_logger: logger.Experiment,
     print_freq: int,
     start_epoch: int,
-    dual_training: bool,
-    alternative_train: float,
     options: dict,
     save_model: bool = True,
     save_all_from: Optional[int] = None,
@@ -257,8 +218,6 @@ def training_loop(
             exp_logger,
             epoch,
             print_freq,
-            dual_training=dual_training,
-            alternative_train=alternative_train,
             neptune_exp=neptune_exp,
         )
 
@@ -307,35 +266,40 @@ def training_loop(
     return best_acc1
 
 
-def main():
-    args = parser.parse_args()
+@click.command()
+@click.argument("path_opt", type=click.Path(exists=True))
+@click.option("--save_ckpt/--no-ckpt", default=False, help="save checkpoint")
+@click.option(
+    "--pfreq", default=10, type=int, help="log print at every n updates"
+)
+@click.option(
+    "--neptlog/--no-neptlog",
+    default=False,
+    help="upload the experiment to neptune.ai",
+)
+@click.option("--resume", type=str, default=None)
+@click.option("--save_all_from", type=int, default=None)
+def main(
+    path_opt: str,
+    save_ckpt: bool,
+    pfreq: int,
+    neptlog: bool,
+    resume: Optional[str],
+    save_all_from: Optional[int],
+):
 
-    if args.path_opt is not None:
-        with open(args.path_opt, "r") as handle:
-            options = yaml.load(handle)
+    with open(path_opt, "r") as handle:
+        options = yaml.load(handle)
 
     if "model" not in options.keys():
         options["model"] = {}
 
-    if args.dual_training:
-        options["logs"]["dir_logs"] += "_dual_training"
-
-    print("## args")
-    pprint(vars(args))
     print("## options")
     pprint(options)
 
-    if args.neptune_on:
+    if neptlog:
         parameters = {"log_dir": options["logs"]["dir_logs"]}
         neptune_exp = construct_neptune_experiment(parameters=parameters)
-
-        for split in ["train", "val", "test"]:
-            neptune_exp.log_text(
-                f"{split}_data_version", md5(f"data/artvqa/{split}.json")
-            )
-
-    if args.help_opt:
-        return
 
     # Set datasets
     print("Loading dataset....")
@@ -346,14 +310,13 @@ def main():
 
     print("Done.")
     print("Setting up the model...")
-
     model = getattr(models, options["model"]["arch"])(
         options["model"],
         train_loader.dataset.vocab_words(),
         train_loader.dataset.vocab_answers(),
     )
 
-    if args.share_embeddings:
+    if options["model"]["share_embeddings"]:
         model.set_share_parameters()
 
     optimizer = torch.optim.Adam(
@@ -366,21 +329,18 @@ def main():
 
     # Optionally resume from a checkpoint
     exp_logger = None
-    if args.resume:
+    start_epoch = 0
+    if resume:
         print("Loading saved model...")
-        args.start_epoch, best_acc1, exp_logger = load_checkpoint(
+        start_epoch, _, exp_logger = load_checkpoint(
             model,
             optimizer,  # model.module, optimizer,
-            os.path.join(options["logs"]["dir_logs"], args.resume),
+            os.path.join(options["logs"]["dir_logs"], resume),
         )
     else:
         log_dir = options["logs"]["dir_logs"]
         make_log_dir(log_dir)
-        log_options(log_dir, args, options)
-
-        if args.neptune_on:
-            for option_logs in os.listdir(log_dir):
-                neptune_exp.log_artifact(os.path.join(log_dir, option_logs))
+        log_options(log_dir, options)
 
     if exp_logger is None:
         exp_logger = construct_logger(options)
@@ -393,17 +353,15 @@ def main():
         model,
         optimizer,
         exp_logger,
-        args.print_freq,
-        args.start_epoch,
-        args.dual_training,
-        args.alternative_train,
+        pfreq,
+        start_epoch,
         options,
-        args.save_model,
-        args.save_all_from,
-        neptune_exp=neptune_exp if args.neptune_on else None,
+        save_ckpt,
+        save_all_from,
+        neptune_exp=neptune_exp if neptlog else None,
     )
 
-    if args.neptune_on:
+    if neptlog:
         neptune_exp.stop()
 
 
@@ -546,17 +504,5 @@ def load_checkpoint(model, optimizer, path_ckpt):
     return start_epoch, best_acc1, exp_logger
 
 
-import hashlib
-
-
-def md5(fname):
-    hash_md5 = hashlib.md5()
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
-
-
 if __name__ == "__main__":
     main()
-

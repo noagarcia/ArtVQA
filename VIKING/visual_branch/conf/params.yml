@@ -25,8 +25,8 @@ optim:
     lr: 0.0001
     lr_decay: 0.5
     lr_decay_epoch: 30
-    batch_size: 32 #512
-    epochs: 50
+    batch_size: 512
+    epochs: 10 #50
     optimizer: Adam
     weight_decay: 0.00001
 model: 
@@ -36,6 +36,7 @@ model:
     dim_q: 2400
     dim_a: 510
     share_modules: False
+    share_embeddings: False
     seq2vec:
         arch: skipthoughts
         dir_st: data/skip-thoughts

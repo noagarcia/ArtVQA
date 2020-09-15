@@ -19,7 +19,8 @@ class Dual_Model(nn.Module):
 
         # To fuse different glimpses
         dim_h = int(
-            self.opt["vqa"]["fusion"]["dim_hv"] / opt["attention"]["nb_glimpses"]
+            self.opt["vqa"]["fusion"]["dim_hv"]
+            / opt["attention"]["nb_glimpses"]
         )
 
         self.vocab_answers = vocab_answers
@@ -37,12 +38,16 @@ class Dual_Model(nn.Module):
             self.opt["vqa"]["fusion"]["dim_mm"], self.num_classes
         )
         self.fusion_classif_vqa = fusion.MutanFusion(
-            self.opt["vqa"]["fusion"], visual_embedding=False, question_embedding=False
+            self.opt["vqa"]["fusion"],
+            visual_embedding=False,
+            question_embedding=False,
         )
-        self.attention_vqa = getattr(attention_modules, opt["attention"]["arch"])(
-            opt, use_linear=False
+        self.attention_vqa = getattr(
+            attention_modules, opt["attention"]["arch"]
+        )(opt, use_linear=False)
+        self.linear_q_att = nn.Linear(
+            self.opt["dim_q"], self.opt["attention"]["dim_q"]
         )
-        self.linear_q_att = nn.Linear(self.opt["dim_q"], self.opt["attention"]["dim_q"])
         self.list_linear_v_fusion_vqa = nn.ModuleList(
             [
                 nn.Linear(self.opt["dim_v"], dim_h)
@@ -56,17 +61,21 @@ class Dual_Model(nn.Module):
         )
         # VQG modules
         self.linear_va_transform = nn.Linear(
-            self.linear_classif.in_features, self.opt["vqg"]["vec2seq"]["dim_embedding"]
+            self.linear_classif.in_features,
+            self.opt["vqg"]["vec2seq"]["dim_embedding"],
         )
-        self.linear_a_att = nn.Linear(self.opt["dim_a"], self.opt["attention"]["dim_q"])
+        self.linear_a_att = nn.Linear(
+            self.opt["dim_a"], self.opt["attention"]["dim_q"]
+        )
 
         self.linear_a_fusion = nn.Linear(
-            self.opt["vqa"]["fusion"]["dim_mm"], self.opt["vqa"]["fusion"]["dim_hq"]
+            self.opt["vqa"]["fusion"]["dim_mm"],
+            self.opt["vqa"]["fusion"]["dim_hq"],
         )
         # Modules for Question Generation
-        self.question_generation = getattr(vec2seq, opt["vqg"]["vec2seq"]["arch"])(
-            vocab_words, opt["vqg"]["vec2seq"]
-        )
+        self.question_generation = getattr(
+            vec2seq, opt["vqg"]["vec2seq"]["arch"]
+        )(vocab_words, opt["vqg"]["vec2seq"])
 
         # Sharable modules
         if self.opt.get("share_modules", True):
@@ -81,9 +90,9 @@ class Dual_Model(nn.Module):
                 visual_embedding=False,
                 question_embedding=False,
             )
-            self.attention_vqg = getattr(attention_modules, opt["attention"]["arch"])(
-                opt, use_linear=False
-            )
+            self.attention_vqg = getattr(
+                attention_modules, opt["attention"]["arch"]
+            )(opt, use_linear=False)
             self.list_linear_v_fusion_vqg = nn.ModuleList(
                 [
                     nn.Linear(self.opt["dim_v"], dim_h)
@@ -137,12 +146,18 @@ class Dual_Model(nn.Module):
             x_q_att = getattr(F, self.opt["attention"]["activation_q"])(x_q_att)
 
         att_v_list_vqa = self.attention_vqa(input_v, x_q_att)
-        x_v_vqa = self._fusion_glimpses(att_v_list_vqa, self.list_linear_v_fusion_vqa)
+        x_v_vqa = self._fusion_glimpses(
+            att_v_list_vqa, self.list_linear_v_fusion_vqa
+        )
         x_q = F.dropout(
-            x_q, p=self.opt["vqa"]["fusion"]["dropout_q"], training=self.training
+            x_q,
+            p=self.opt["vqa"]["fusion"]["dropout_q"],
+            training=self.training,
         )
         x_q = self.linear_q_fusion(x_q)
-        x_q_transformed = getattr(F, self.opt["vqa"]["fusion"]["activation_q"])(x_q)
+        x_q_transformed = getattr(F, self.opt["vqa"]["fusion"]["activation_q"])(
+            x_q
+        )
         # Second multimodal fusion
         x_a_pred = self.fusion_classif_vqa(x_v_vqa, x_q_transformed)
         x_a = getattr(F, self.opt["vqa"]["classif"]["activation"])(x_a_pred)
@@ -155,14 +170,18 @@ class Dual_Model(nn.Module):
     def _vqg_forward(self, input_v, target_a, input_q=None):
         x_a_embedding = self.answer_embeddings(target_a.view(1, -1)).squeeze(0)
         x_a_att = F.dropout(
-            x_a_embedding, p=self.opt["attention"]["dropout_q"], training=self.training
+            x_a_embedding,
+            p=self.opt["attention"]["dropout_q"],
+            training=self.training,
         )
         x_a_att = self.linear_a_att(x_a_att)
         if "activation_q" in self.opt["attention"]:
             x_a_att = getattr(F, self.opt["attention"]["activation_q"])(x_a_att)
         # attention
         att_v_list_vqg = self.attention_vqg(input_v, x_a_att)
-        x_v_vqg = self._fusion_glimpses(att_v_list_vqg, self.list_linear_v_fusion_vqg)
+        x_v_vqg = self._fusion_glimpses(
+            att_v_list_vqg, self.list_linear_v_fusion_vqg
+        )
 
         x_a_embedding = self.linear_a_fusion(x_a_embedding)
         x_a = getattr(F, self.opt["vqg"]["activation"])(x_a_embedding)
@@ -212,13 +231,17 @@ class Dual_Model(nn.Module):
 
         # transform the fused feature to word_embedding domain (length = opts['vec2seq']['dim_embedding'])
         x_va = F.dropout(
-            x_va, p=self.opt["vqg"]["vec2seq"]["dropout"], training=self.training
+            x_va,
+            p=self.opt["vqg"]["vec2seq"]["dropout"],
+            training=self.training,
         )
         x_va = getattr(F, self.opt["vqg"]["vec2seq"]["activation"])(
             self.linear_va_transform(x_va)
         )
         x_va = F.dropout(
-            x_va, p=self.opt["vqg"]["vec2seq"]["dropout"], training=self.training
+            x_va,
+            p=self.opt["vqg"]["vec2seq"]["dropout"],
+            training=self.training,
         )
         if self.is_testing:
             if x_va.size(0) == 1:

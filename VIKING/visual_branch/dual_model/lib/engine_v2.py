@@ -34,7 +34,6 @@ def train(
     meters = logger.reset_meters("train")
     end = time.time()
     for i, sample in enumerate(loader):
-
         batch_size = sample["visual"].size(0)
 
         # measure data loading time
@@ -56,7 +55,9 @@ def train(
 
         # Hack for the compatability of reinforce() and DataParallel()
         target_question = pack_padded_sequence(
-            target_question.index_select(0, new_ids)[:, 1:], lengths, batch_first=True
+            target_question.index_select(0, new_ids)[:, 1:],
+            lengths,
+            batch_first=True,
         )[0]
         output = pack_padded_sequence(
             generated_q.index_select(0, new_ids), lengths, batch_first=True
@@ -99,9 +100,15 @@ def train(
         if neptune_exp is not None:
             neptune_exp.log_metric("Acc@1/train", epoch * len(loader) + i, acc1)
             neptune_exp.log_metric("Acc@5/train", epoch * len(loader) + i, acc5)
-            neptune_exp.log_metric("Acc@10/train", epoch * len(loader) + i, acc10)
-            neptune_exp.log_metric("Loss_A/train", epoch * len(loader) + i, loss_a)
-            neptune_exp.log_metric("Loss_Q/train", epoch * len(loader) + i, loss_q)
+            neptune_exp.log_metric(
+                "Acc@10/train", epoch * len(loader) + i, acc10
+            )
+            neptune_exp.log_metric(
+                "Loss_A/train", epoch * len(loader) + i, loss_a
+            )
+            neptune_exp.log_metric(
+                "Loss_Q/train", epoch * len(loader) + i, loss_q
+            )
 
         if (i + 1) % print_freq == 0:
             print(
@@ -147,13 +154,6 @@ def train(
     logger.log_meters("train", n=epoch)
 
 
-# def adjust_learning_rate(optimizer, epoch):
-#     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-#     lr = args.lr * (0.1 ** (epoch // 30))
-#     for param_group in optimizer.param_groups:
-#         param_group['lr'] = lr
-
-
 def validate(loader, model, logger, epoch=0, print_freq=100):
     # switch to train mode
     model.eval()
@@ -179,7 +179,9 @@ def validate(loader, model, logger, epoch=0, print_freq=100):
 
         # Hack for the compatability of reinforce() and DataParallel()
         target_question = pack_padded_sequence(
-            target_question.index_select(0, new_ids)[:, 1:], lengths, batch_first=True
+            target_question.index_select(0, new_ids)[:, 1:],
+            lengths,
+            batch_first=True,
         )[0]
         output = pack_padded_sequence(
             generated_q.index_select(0, new_ids), lengths, batch_first=True
@@ -245,7 +247,12 @@ def evaluate(
     model.eval()
     model.module.set_testing(True, sample_num=sampling_num)
     meters = logger.reset_meters("test")
-    res_counter = {"correct@1": 0, "correct@5": 0, "correct@10": 0, "n_sample": 0}
+    res_counter = {
+        "correct@1": 0,
+        "correct@5": 0,
+        "correct@10": 0,
+        "n_sample": 0,
+    }
     results = []
     end = time.time()
 
@@ -260,7 +267,9 @@ def evaluate(
         )
         output_answer_ = output_answer.detach().cpu().numpy()
         bleu_score = calculate_bleu_score(
-            generated_q.cpu().data, sample["question"], loader.dataset.wid_to_word
+            generated_q.cpu().data,
+            sample["question"],
+            loader.dataset.wid_to_word,
         )
         acc1, acc5, acc10 = utils.accuracy(
             output_answer.cpu().data, target_answer, topk=(1, 5, 10)
@@ -291,7 +300,9 @@ def evaluate(
                 given_question, loader.dataset.wid_to_word
             )
             predict_answers = np.flip(np.argsort(output_answer_[j]))[:10]
-            predict_answers = [loader.dataset.aid_to_ans[w] for w in predict_answers]
+            predict_answers = [
+                loader.dataset.aid_to_ans[w] for w in predict_answers
+            ]
             new_answer_score = g_answers_score[j]
             sampled_aqa = [[new_question, new_answer, new_answer_score]]
 
@@ -310,7 +321,10 @@ def evaluate(
                 "predict_answers": predict_answers,
             }
             results.append(
-                {"image": sample["image"][j], "readable_result": readable_result}
+                {
+                    "image": sample["image"][j],
+                    "readable_result": readable_result,
+                }
             )
         # measure elapsed time
         meters["batch_time"].update(time.time() - end, n=batch_size)
@@ -339,4 +353,3 @@ def evaluate(
 
     model.module.set_testing(False)
     return results
-

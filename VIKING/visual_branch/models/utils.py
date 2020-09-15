@@ -1,37 +1,35 @@
 # Common functions shared by different modules
 import torch
-import logging
-import torch.nn as nn
-from torch.autograd import Variable
-import numpy as np
-import math
 from nltk.translate.bleu_score import SmoothingFunction, sentence_bleu
-import pdb
 
 
 __optimizers = {
-    'SGD': torch.optim.SGD,
-    'ASGD': torch.optim.ASGD,
-    'Adam': torch.optim.Adam,
-    'Adamax': torch.optim.Adamax,
-    'Adagrad': torch.optim.Adagrad,
-    'Adadelta': torch.optim.Adadelta,
-    'Rprop': torch.optim.Rprop,
-    'RMSprop': torch.optim.RMSprop
+    "SGD": torch.optim.SGD,
+    "ASGD": torch.optim.ASGD,
+    "Adam": torch.optim.Adam,
+    "Adamax": torch.optim.Adamax,
+    "Adagrad": torch.optim.Adagrad,
+    "Adadelta": torch.optim.Adadelta,
+    "Rprop": torch.optim.Rprop,
+    "RMSprop": torch.optim.RMSprop,
 }
 
+
 def select_optimizer(optimizer_name, params, lr=0.1, weight_decay=0.0):
-    return __optimizers[optimizer_name](params, lr=lr, weight_decay=weight_decay)
+    return __optimizers[optimizer_name](
+        params, lr=lr, weight_decay=weight_decay
+    )
 
 
 def adjust_optimizer(optimizer, epoch, config):
     """Reconfigures the optimizer according to epoch and config dict"""
+
     def modify_optimizer(optimizer, setting):
         for param_group in optimizer.param_groups:
             for key in param_group.keys():
                 if key in setting:
                     if param_group[key] != setting[key]:
-                        print('OPTIMIZER modified- setting [\'%s\']' % key)
+                        print("OPTIMIZER modified- setting ['%s']" % key)
                         param_group[key] = setting[key]
         return optimizer
 
@@ -45,7 +43,7 @@ def adjust_optimizer(optimizer, epoch, config):
     return optimizer
 
 
-def translate_tokens(token_seq, wid_to_word, end_id = 0):
+def translate_tokens(token_seq, wid_to_word, end_id=0):
     sentence = []
     if not isinstance(token_seq, list):
         token_seq = token_seq.numpy()
@@ -56,14 +54,24 @@ def translate_tokens(token_seq, wid_to_word, end_id = 0):
     return sentence
 
 
-def calculate_bleu_score(generated_question_tensor, reference_question_tensor, wid_to_word):
+def calculate_bleu_score(
+    generated_question_tensor, reference_question_tensor, wid_to_word
+):
     batch_size = generated_question_tensor.size(0)
-    bleu_score = 0.
+    bleu_score = 0.0
     for j in range(batch_size):
-            sampled_aqa = []
-            new_question = translate_tokens(generated_question_tensor[j].tolist(), wid_to_word)
-            ref_question = translate_tokens(reference_question_tensor[j][1:].tolist(), wid_to_word)
-            bleu_score += float(sentence_bleu([' '.join(ref_question)], ' '.join(new_question), 
-                                    smoothing_function=SmoothingFunction().method4))
+        sampled_aqa = []
+        new_question = translate_tokens(
+            generated_question_tensor[j].tolist(), wid_to_word
+        )
+        ref_question = translate_tokens(
+            reference_question_tensor[j][1:].tolist(), wid_to_word
+        )
+        bleu_score += float(
+            sentence_bleu(
+                [" ".join(ref_question)],
+                " ".join(new_question),
+                smoothing_function=SmoothingFunction().method4,
+            )
+        )
     return bleu_score / batch_size
-

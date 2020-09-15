@@ -1,2 +1,9 @@
 h5py
 pyyaml
+nltk
+black
+pylint
+flake8
+mypy
+skipthoughts
+neptune-client
