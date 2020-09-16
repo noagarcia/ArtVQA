@@ -9,7 +9,7 @@ dataset:
     metadata: data/SemArt/extract/arch,resnet152_size,448/all.txt
     trainsplit: train
     mode: att
-    nans: 2000
+    nans: 5000
     maxlength: 17
     minwcount: 10
     pad: right
@@ -86,3 +86,6 @@ model:
             dropout: 0.5
             share_weight: 0 # share the weight of word embedding and word classifier
             nseq: 20
+neptune: #optional
+    proj_name: "your_project_name_here"
+    exp_name: "your_experiment_name_here"
