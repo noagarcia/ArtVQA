@@ -1,7 +1,6 @@
-import argparse
 import os
 import shutil
-from typing import Optional
+from typing import List, Optional
 from click.decorators import option
 import yaml
 import json
@@ -10,7 +9,6 @@ from pprint import pprint
 
 import torch
 import torch.nn as nn
-from argparse import Namespace
 
 import vqa.lib.logger as logger
 import vqa.datasets as datasets
@@ -19,7 +17,6 @@ import vqa.datasets as datasets
 import models.dual_model as models
 import dual_model.lib.engine_v2 as engine
 
-import pdb
 import neptune
 import getpass, socket
 import sys
@@ -40,24 +37,21 @@ def add_time_stamp(log_dir: str) -> str:
 
 
 def construct_neptune_experiment(
-    properties: dict = {}, parameters: dict = {}
+    project_name: str, exp_name: str, tags: List[str]
 ) -> neptune.experiments.Experiment:
-    properties.update(
-        {
+    neptune.init(project_name)
+    neptune_exp = neptune.create_experiment(
+        name=exp_name,
+        properties={
             "user": getpass.getuser(),
             "host": socket.gethostname(),
-            "cwd": os.getcwd(),
+            "wd": os.getcwd(),
             "cmd": " ".join(sys.argv),
-        }
-    )
-    neptune.init("artQA/artQA-IJICAI-submission")
-    neptune_exp = neptune.create_experiment(
-        name=f"train-iQAN",
-        params=parameters,
-        properties=properties,
-        tags=["question-image", "iQAN"],
+        },
+        tags=tags,
         upload_stdout=True,
     )
+
     return neptune_exp
 
 
@@ -213,8 +207,11 @@ def main(
     pprint(options)
 
     if neptlog:
-        parameters = {"log_dir": options["logs"]["dir_logs"]}
-        neptune_exp = construct_neptune_experiment(parameters=parameters)
+        neptune_exp = construct_neptune_experiment(
+            options["neptune"]["proj_name"],
+            options["neptune"]["exp_name"],
+            tags=["train"],
+        )
 
     # Set datasets
     print("Loading dataset....")
