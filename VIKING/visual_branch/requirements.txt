@@ -1,6 +1,6 @@
-h5py
+h5py==2.10.0
 pyyaml
-nltk
+nltk==3.5
 black
 pylint
 flake8
