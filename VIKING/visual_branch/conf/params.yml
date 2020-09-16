@@ -26,7 +26,7 @@ optim:
     lr_decay: 0.5
     lr_decay_epoch: 30
     batch_size: 512
-    epochs: 10 #50
+    epochs: 50
     optimizer: Adam
     weight_decay: 0.00001
 model: 
@@ -87,5 +87,5 @@ model:
             share_weight: 0 # share the weight of word embedding and word classifier
             nseq: 20
 neptune: #optional
-    proj_name: "your_project_name_here"
-    exp_name: "your_experiment_name_here"
+    proj_name: your_project_name_here
+    exp_name: your_experiment_name_here

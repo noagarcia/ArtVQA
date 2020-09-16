@@ -177,9 +177,13 @@ def training_loop(
 
 @click.command()
 @click.argument("path_opt", type=click.Path(exists=True))
-@click.option("--save_ckpt/--no-ckpt", default=False, help="save checkpoint")
 @click.option(
-    "--pfreq", default=10, type=int, help="log print at every n updates"
+    "--save_ckpt/--no-ckpt",
+    default=True,
+    help="default: true. set --no-ckpt if you want run without saving models.",
+)
+@click.option(
+    "--pfreq", default=10, type=int, help="default: 10. print logs at every n updates"
 )
 @click.option(
     "--neptlog/--no-neptlog",
