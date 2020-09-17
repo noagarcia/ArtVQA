@@ -1,6 +1,9 @@
-numpy
-torch
-h5py
+h5py==2.10.0
 pyyaml
-colorlover
-plotly
+nltk==3.5
+black
+pylint
+flake8
+mypy
+skipthoughts
+neptune-client
