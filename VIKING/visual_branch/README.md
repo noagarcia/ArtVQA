@@ -8,7 +8,7 @@ painting as input, and predicts an answer to the given question.
 ### Dependencies
 ```bash
 docker build --build-arg USERNAME=$(whoami) --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t image_name_here .
-docker run --rm -it --init--volume="/path/to/ArtQA_root_dir:/workspace"
+docker run --rm -it --init --volume="/path/to/ArtQA_root_dir:/workspace" image_name_here bash
 ```
 
 ### Prepare Data
