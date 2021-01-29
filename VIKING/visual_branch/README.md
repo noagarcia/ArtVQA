@@ -5,26 +5,29 @@ The `visual QA branch` predicts an answer for a sample classified as not externa
 It takes the question which external knowledge classifier predicts that no external knowledge is needed as well as the 
 painting as input, and predicts an answer to the given question.
 
-See list of requierements [here](https://github.com/Zihua-Liu/QA_Pipeline_SemArt/blob/master/iQAN/requirements.txt).
-
+### Dependencies
+```bash
+docker build --build-arg USERNAME=$(whoami) --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t image_name_here .
+docker run --rm -it --init --volume="/path/to/ArtQA_root_dir:/workspace" image_name_here bash
+```
 
 ### Prepare Data
+Dataset files are specified in `conf/params.yml`.
 
-In order to train and evaluate the performance of the model, first prepare the training, valiadation and test. 
-
-- Copy training and validation set from to the target folder:
-
-```bash
-cp ../../AQUA/train.json ./data/SemArt/extract/arch,resnet152_size,448/
-cp ../../AQUA/val.json ./data/SemArt/extract/arch,resnet152_size,448/
+```yml
+dataset:
+    train: ../../AQUA/train.json
+    val: ../../AQUA/val.json
+    test: ../../AQUA/test.json
 ```
 
-- The test set is those questions which `modality selector` predicts that no external knowledge is needed, the file
-`test_not_need_kg.json` contains the test set for this module.
+First compile vocabulary files from the training data. 
 
 ```bash
-cp ../modality_selector/Results/test_not_need_kg.json ./data/SemArt/extract/arch,resnet152_size,448/
+python vqa/datasets/vqa_processed.py conf/params.yml
 ```
+
+- The test set `AQUA/test.json` includes both visual questions and those that need external knowledge. If you want to test a model only on visual questions, extract questions with `"need_external_knowledge": false` and save in another file. Then, specify the path to the file in `conf/param.yml`.
 
 ### Prepare Features for Painings
 
@@ -42,13 +45,22 @@ The `hdf5` file is about 30GB and may take some time to download.
 - Training:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python train_dual_model.py --path_opt options/dual_model/dual_model_MUTAN_skipthought.yaml --dir_logs logs/dual_model/iQAN_Mutan_skipthought_dual_training/ --share_embeddings -b 8
+python train.py conf/params.yml
+```
+
+- Logging with neptune (optional)
+
+[Neptune](https://neptune.ai/) is an experiment tracking tool.
+Specify neptune project and experiment names in `conf/params.yml` and run with `--neptlog` flag.
+
+```bash
+python train.py conf/params.yml --neptlog
 ```
 
 - Evaluation:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python train_dual_model.py --path_opt options/dual_model/dual_model_MUTAN_skipthought.yaml --dir_logs logs/dual_model/iQAN_Mutan_skipthought_dual_training/ --resume best -e --share_embeddings -b 8
+python evaluate.py directory/of/model-checkpoint/
 ```
 
-The model will load a checkpoint which has best validation performance and do the predicion on test set. The prediction result can be seen in `logs/dual_model/iQAN_Mutan_skipthought_dual_training/evaluate`.
+The model will load a checkpoint which has best validation performance and do the predicion on test set. The prediction result can be seen in `directory/of/model-checkpoint/evaluate`.
