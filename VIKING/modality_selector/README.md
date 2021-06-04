@@ -30,10 +30,8 @@ bert-serving-start -model_dir ./uncased_L-24_H-1024_A-16/ -num_worker=1
 ```
 
 - **Painting features**. We use pretrained ResNet-152. The extracted features for the all the paintings within SemArt dataset can be download from here:
+https://drive.google.com/file/d/1iHjtphxxY_3UOwT7XLAnYYq66IsKNk7g/view?usp=sharing
 
-```bash
-wget https://artvqa.s3-ap-northeast-1.amazonaws.com/image_features.json
-```
 
 - **Features processing**. Run feature extraction code to extract features and the extracted features will be saved to `Cache` folder:
 

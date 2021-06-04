@@ -33,12 +33,10 @@ python vqa/datasets/vqa_processed.py conf/params.yml
 
 We use pretrained ResNet features to represent paintings. The features and the index of the paintings can be downloaded from here:
 
-```
-wget https://semart-images.s3-ap-northeast-1.amazonaws.com/VIKING/all.hdf5 -P ./data/SemArt/extract/arch,resnet152_size,448/
-wget https://semart-images.s3-ap-northeast-1.amazonaws.com/VIKING/all.txt -P ./data/SemArt/extract/arch,resnet152_size,448/
-```
+- (Features) https://drive.google.com/file/d/1hGE-9rdHaf3MHSJZGZdR7_bbZW6q2Xy2/view?usp=sharing
+- (Index) https://drive.google.com/file/d/1Z0GYUe7N5JkL-P3D4rGaTL_OCRaQc36x/view?usp=sharing
 
-The `hdf5` file is about 30GB and may take some time to download.
+Download and save both files in `./data/SemArt/extract/arch,resnet152_size,448/`. The `hdf5` file is about 30GB and may take some time to download.
 
 ### Run the model
 
